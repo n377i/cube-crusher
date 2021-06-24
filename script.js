@@ -8,6 +8,19 @@ game.height = game.width;
 // Kontext definieren.
 const ctx = game.getContext('2d');
 
+// Paddle
+const paddleHeight = 30;
+const paddleWidth = paddleHeight * 4;
+const paddleX = (game.width - paddleWidth) / 2;
+const paddleY = (game.height - paddleHeight) - 67;
+const marginBottom = 90;
+const paddle = {
+    h: paddleHeight,
+    w: paddleWidth,
+    x: (game.width - paddleWidth) / 2,
+    y: (game.height - paddleHeight) - marginBottom
+}
+
 // Hintergrund-Verlauf zeichnen.
 const drawBackground = () => {
     let background = ctx.createLinearGradient(0, 0, 0, 1000);
@@ -22,19 +35,6 @@ const drawBackground = () => {
     );
 }
 
-// Paddle
-const paddleHeight = 24;
-const paddleWidth = paddleHeight * 4;
-const paddleX = (game.width - paddleWidth) / 2;
-const paddleY = (game.height - paddleHeight) - 67;
-const marginBottom = 90;
-const paddle = {
-    h: paddleHeight,
-    w: paddleWidth,
-    x: (game.width - paddleWidth) / 2,
-    y: (game.height - paddleHeight) - marginBottom
-}
-
 const drawPaddle = () => {
     ctx.fillStyle = 'white';
     ctx.fillRect(
@@ -46,7 +46,7 @@ const drawPaddle = () => {
 }
 
 // Ball
-const ballRadius = 15;
+const ballRadius = 16;
 const ball = {
     x: game.width / 2,
     y: paddle.y - ballRadius,
@@ -85,8 +85,69 @@ update();
 
 const init = () => {
     drawBackground();
-    drawPaddle();
+/*
+    roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10);
+
+    // Reihe 1
+    roundRect(59, 59, 80, 80, 10);
+    roundRect(145, 60, 80, 80, 10);
+    roundRect(231, 60, 80, 80, 10);
+    roundRect(317, 60, 80, 80, 10);
+    roundRect(403, 60, 80, 80, 10);
+    roundRect(489, 60, 80, 80, 10);
+    roundRect(575, 60, 80, 80, 10);
+    roundRect(661, 60, 80, 80, 10);
+
+    // Reihe 2
+    roundRect(59, 145, 80, 80, 10);
+    roundRect(145, 146, 80, 80, 10);
+    roundRect(231, 146, 80, 80, 10);
+    roundRect(317, 146, 80, 80, 10);
+    roundRect(403, 146, 80, 80, 10);
+    roundRect(489, 146, 80, 80, 10);
+    roundRect(575, 146, 80, 80, 10);
+    roundRect(661, 146, 80, 80, 10);
+
+    // Reihe 3
+    roundRect(59, 231, 80, 80, 10);
+    roundRect(145, 232, 80, 80, 10);
+    roundRect(231, 232, 80, 80, 10);
+    roundRect(317, 232, 80, 80, 10);
+    roundRect(403, 232, 80, 80, 10);
+    roundRect(489, 232, 80, 80, 10);
+    roundRect(575, 232, 80, 80, 10);
+    roundRect(661, 232, 80, 80, 10);
+    
+    // Reihe 4
+    roundRect(59, 317, 80, 80, 10);
+    roundRect(145, 318, 80, 80, 10);
+    roundRect(231, 318, 80, 80, 10);
+    roundRect(317, 318, 80, 80, 10);
+    roundRect(403, 318, 80, 80, 10);
+    roundRect(489, 318, 80, 80, 10);
+    roundRect(575, 318, 80, 80, 10);
+    roundRect(661, 318, 80, 80, 10);
+*/
+     drawPaddle();
     drawBall();
+}
+
+const roundRect = (x, y, w, h, radius) =>
+{
+  let r = x + w;
+  let b = y + h;
+  ctx.beginPath();
+  ctx.fillStyle="green";
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(r - radius, y);
+  ctx.quadraticCurveTo(r, y, r, y+radius);
+  ctx.lineTo(r, y + h-radius);
+  ctx.quadraticCurveTo(r, b, r - radius, b);
+  ctx.lineTo(x+radius, b);
+  ctx.quadraticCurveTo(x, b, x, b - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.fill();
 }
 
 init();
