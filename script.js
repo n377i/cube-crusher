@@ -14,7 +14,12 @@ const drawBackground = () => {
     background.addColorStop(0, '#111');
     background.addColorStop(1, '#333');
     ctx.fillStyle = background;
-    ctx.fillRect(0, 0, game.width, game.height - marginBottom);
+    ctx.fillRect(
+        0,
+        0,
+        game.width,
+        game.height - marginBottom
+    );
 }
 
 // Paddle
@@ -31,21 +36,57 @@ const paddle = {
 }
 
 const drawPaddle = () => {
-    ctx.fillStyle = "white";
-    ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(
+        paddle.x,
+        paddle.y,
+        paddle.w,
+        paddle.h
+    );
 }
 
 // Ball
-const ballRadius = 5;
+const ballRadius = 15;
 const ball = {
     x: game.width / 2,
     y: paddle.y - ballRadius,
-    radius: ballRadius 
+    radius: ballRadius
+}
+
+const drawBall = () => {
+    ctx.beginPath();
+    ctx.arc(
+        ball.x,
+        ball.y,
+        ball.radius,
+        0,
+        Math.PI * 2
+    );
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.stroke();
+    ctx.closePath();
+}
+
+// Game Loop
+const loop = () => {
+    ctx.clear(
+        0, 
+        0, 
+        game.width,
+        game.height)
+
+draw();
+update();
+
+        requestAnimationFrame(loop);
 }
 
 const init = () => {
     drawBackground();
     drawPaddle();
+    drawBall();
 }
 
 init();
