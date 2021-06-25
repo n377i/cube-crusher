@@ -49,13 +49,14 @@ const paddle = {
 }
 
 const drawPaddle = () => {
-    ctx.fillStyle = 'white';
+    /*ctx.fillStyle = 'white';
     ctx.fillRect(
         paddle.x,
         paddle.y,
         paddle.w,
         paddle.h
-    );
+    );*/
+    roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10, 'white');
 }
 
 // Ball
@@ -169,11 +170,9 @@ const update = () => {
 const draw = () => {
     drawGameBG();
     drawScoreBG();
-    /*
-        roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10);
-
+    
         // Reihe 1
-        roundRect(59, 59, 80, 80, 10);
+        roundRect(59, 59, 80, 80, 10, '#ee1c25');
         roundRect(145, 60, 80, 80, 10);
         roundRect(231, 60, 80, 80, 10);
         roundRect(317, 60, 80, 80, 10);
@@ -183,7 +182,7 @@ const draw = () => {
         roundRect(661, 60, 80, 80, 10);
 
         // Reihe 2
-        roundRect(59, 145, 80, 80, 10);
+        roundRect(59, 145, 80, 80, 10, '#f48221');
         roundRect(145, 146, 80, 80, 10);
         roundRect(231, 146, 80, 80, 10);
         roundRect(317, 146, 80, 80, 10);
@@ -193,7 +192,7 @@ const draw = () => {
         roundRect(661, 146, 80, 80, 10);
 
         // Reihe 3
-        roundRect(59, 231, 80, 80, 10);
+        roundRect(59, 231, 80, 80, 10, '#ffe700');
         roundRect(145, 232, 80, 80, 10);
         roundRect(231, 232, 80, 80, 10);
         roundRect(317, 232, 80, 80, 10);
@@ -203,7 +202,7 @@ const draw = () => {
         roundRect(661, 232, 80, 80, 10);
         
         // Reihe 4
-        roundRect(59, 317, 80, 80, 10);
+        roundRect(59, 317, 80, 80, 10, '#8ec63d');
         roundRect(145, 318, 80, 80, 10);
         roundRect(231, 318, 80, 80, 10);
         roundRect(317, 318, 80, 80, 10);
@@ -211,7 +210,7 @@ const draw = () => {
         roundRect(489, 318, 80, 80, 10);
         roundRect(575, 318, 80, 80, 10);
         roundRect(661, 318, 80, 80, 10);
-    */
+    
     drawPaddle();
     drawBall();
 }
@@ -222,12 +221,12 @@ const loop = () => {
     update();
     requestAnimationFrame(loop);
 }
-/*
-const roundRect = (x, y, w, h, radius) => {
+
+const roundRect = (x, y, w, h, radius, color) => {
     let r = x + w;
     let b = y + h;
     ctx.beginPath();
-    ctx.fillStyle = "green";
+    ctx.fillStyle = color;
     ctx.moveTo(x + radius, y);
     ctx.lineTo(r - radius, y);
     ctx.quadraticCurveTo(r, y, r, y + radius);
@@ -239,6 +238,5 @@ const roundRect = (x, y, w, h, radius) => {
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.fill();
 }
-*/
 
 loop();
