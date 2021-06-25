@@ -79,19 +79,6 @@ const moveBall = () => {
     ball.y += speedY;
 }
 
-const wallCollision = () => {
-    if ((ball.x + ball.radius) > game.width || (ball.x - ball.radius < 0)) {
-        ball.speedX = -ball.speedX;
-    }
-    if ((ball.y + ball.radius) < 0) {
-        ball.speedY = -ball.speedY;
-    }
-    if ((ball.y + ball.radius) > game.height) {
-        life--;
-        resetBall();
-    }
-}
-
 const resetBall = () => {
     ball.x = game.width / 2;
     ball.y = paddle.y - ballRadius;
@@ -99,21 +86,42 @@ const resetBall = () => {
     ball.speedY = -3;
 }
 
-// Game Loop
-const loop = () => {
-    ctx.clear(
-        0,
-        0,
-        game.width,
-        game.height)
-
-    draw();
-    update();
-
-    requestAnimationFrame(loop);
+// Kollisionsabfrage Wand
+const wallCollision = () => {
+    if (ball.x + ball.radius > game.width || ball.x - ball.radius < 0) {
+        ball.speedX = -ball.speedX;
+    }
+    if (ball.y + ball.radius < 0) {
+        ball.speedY = -ball.speedY;
+    }
+    if (ball.y + ball.radius > game.height) {
+        life--;
+        resetBall();
+    }
 }
 
-const init = () => {
+// Kollisionsabfrage Paddle
+const paddleCollision = () => {
+    if (ball.y > paddle.y 
+        && ball.y < paddle.y + paddle.h 
+        && ball.x > paddle.x 
+        && ball.x < paddle.x + paddle.w
+        ) {
+            let collisionPoint = ball.x - (paddle.x + paddle.w / 2);
+            collisionPoint = collisionPoint / (paddle.w / 2);
+            let angle = collisionPoint * (Math.PI/3); // 60° 
+            ball.speedX = ball.spin * Math.sin(angle);
+            ball.speedY = -ball.spin * Math.cos(angle);
+    }
+}
+
+const update = () => {
+    moveBall();
+    wallCollision();
+    paddleCollision();
+}
+
+const draw = () => {
     drawBackground();
     /*
         roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10);
@@ -162,6 +170,13 @@ const init = () => {
     drawBall();
 }
 
+// Game Loop
+const init = () => {
+    draw();
+    update();
+    requestAnimationFrame(loop);
+}
+/*
 const roundRect = (x, y, w, h, radius) => {
     let r = x + w;
     let b = y + h;
@@ -178,5 +193,6 @@ const roundRect = (x, y, w, h, radius) => {
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.fill();
 }
+*/
 
 init();
