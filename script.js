@@ -1,31 +1,22 @@
 'use strict';
 
 // VARIABLEN
+const paddleHeight = 30;
+const paddleWidth = paddleHeight * 4;
+const marginBottom = 90;
+const ballRadius = 16;
+let leftArrow = false;
+let rightArrow = false;
 let life = 3;
 
-// Canvas definieren.
+// Canvas und Kontext definieren.
 const game = document.querySelector('#game');
 game.width = 800;
 game.height = game.width;
-
-// Kontext definieren.
 const ctx = game.getContext('2d');
 
-// Paddle
-const paddleHeight = 30;
-const paddleWidth = paddleHeight * 4;
-const paddleX = (game.width - paddleWidth) / 2;
-const paddleY = (game.height - paddleHeight) - 67;
-const marginBottom = 90;
-const paddle = {
-    h: paddleHeight,
-    w: paddleWidth,
-    x: (game.width - paddleWidth) / 2,
-    y: (game.height - paddleHeight) - marginBottom
-}
-
 // Hintergrund-Verlauf zeichnen.
-const drawBackground = () => {
+const drawGameBG = () => {
     let background = ctx.createLinearGradient(0, 0, 0, 1000);
     background.addColorStop(0, '#111');
     background.addColorStop(1, '#333');
@@ -36,6 +27,25 @@ const drawBackground = () => {
         game.width,
         game.height - marginBottom
     );
+}
+
+const drawScoreBG = () => {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(
+        0,
+        game.height - marginBottom,
+        game.width,
+        marginBottom
+    );
+}
+
+// Paddle
+const paddle = {
+    h: paddleHeight,
+    w: paddleWidth,
+    x: (game.width - paddleWidth) / 2,
+    y: game.height - paddleHeight - marginBottom,
+    speed: 6
 }
 
 const drawPaddle = () => {
@@ -49,13 +59,13 @@ const drawPaddle = () => {
 }
 
 // Ball
-const ballRadius = 16;
 const ball = {
     radius: ballRadius,
     x: game.width / 2,
     y: paddle.y - ballRadius,
-    speedX: 3,
-    speedY: -3
+    vx: 3 * (Math.random() * 2 - 1),
+    vy: -3,
+    speed: 4
 }
 
 const drawBall = () => {
@@ -69,32 +79,66 @@ const drawBall = () => {
     );
     ctx.fillStyle = 'white';
     ctx.fill();
-    ctx.strokeStyle = 'white';
-    ctx.stroke();
+    //ctx.strokeStyle = 'white';
+    //ctx.stroke();
     ctx.closePath();
 }
 
+// Steuerung
+document.addEventListener('keydown', function (evt) {
+    if (evt.keyCode == 37) {
+        leftArrow = true;
+    } else if (evt.keyCode == 39) {
+        rightArrow = true;
+    }
+})
+
+document.addEventListener('keyup', function (evt) {
+    if (evt.keyCode == 37) {
+        leftArrow = false;
+    } else if (evt.keyCode == 39) {
+        rightArrow = false;
+    }
+})
+
+/*
+document.addEventListener('mousemove', function (evt) {
+    var relativeX = evt.clientX - game.offsetLeft;
+    if ( relativeX > 0 && relativeX < game.width ) {
+        paddle.x = relativeX - paddle.w / 2;
+    }
+    });
+*/
+
+const movePaddle = () => {
+    if (rightArrow && paddle.x + paddle.w < game.width) {
+        paddle.x += paddle.speed;
+    } else if (leftArrow && paddle.x > 0) {
+        paddle.x -= paddle.speed;
+    }
+}
+
 const moveBall = () => {
-    ball.x += speedX;
-    ball.y += speedY;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
 }
 
 const resetBall = () => {
     ball.x = game.width / 2;
     ball.y = paddle.y - ballRadius;
-    ball.speedX = 3 * (Math.random() * 2 - 1)
-    ball.speedY = -3;
+    ball.vx = 3 * (Math.random() * 2 - 1)
+    ball.vy = -3;
 }
 
 // Kollisionsabfrage Wand
 const wallCollision = () => {
     if (ball.x + ball.radius > game.width || ball.x - ball.radius < 0) {
-        ball.speedX = -ball.speedX;
+        ball.vx = -ball.vx;
     }
-    if (ball.y + ball.radius < 0) {
-        ball.speedY = -ball.speedY;
+    if (ball.y - ball.radius < 0) {
+        ball.vy = -ball.vy;
     }
-    if (ball.y + ball.radius > game.height) {
+    if (ball.y + ball.radius > game.height - marginBottom) {
         life--;
         resetBall();
     }
@@ -102,27 +146,29 @@ const wallCollision = () => {
 
 // Kollisionsabfrage Paddle
 const paddleCollision = () => {
-    if (ball.y > paddle.y 
-        && ball.y < paddle.y + paddle.h 
-        && ball.x > paddle.x 
-        && ball.x < paddle.x + paddle.w
-        ) {
-            let collisionPoint = ball.x - (paddle.x + paddle.w / 2);
-            collisionPoint = collisionPoint / (paddle.w / 2);
-            let angle = collisionPoint * (Math.PI/3); // 60° 
-            ball.speedX = ball.spin * Math.sin(angle);
-            ball.speedY = -ball.spin * Math.cos(angle);
+    if (ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.w &&
+        ball.y + ball.radius > paddle.y &&
+        ball.y + ball.radius < paddle.y + paddle.h
+    ) {
+        let collisionPoint = ball.x - (paddle.x + paddle.w / 2);
+        collisionPoint = collisionPoint / (paddle.w / 2);
+        let angle = collisionPoint * (Math.PI / 3); // 60° 
+        ball.vx = ball.speed * Math.sin(angle);
+        ball.vy = -ball.speed * Math.cos(angle);
     }
 }
 
 const update = () => {
+    movePaddle();
     moveBall();
     wallCollision();
     paddleCollision();
 }
 
 const draw = () => {
-    drawBackground();
+    drawGameBG();
+    drawScoreBG();
     /*
         roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10);
 
@@ -171,7 +217,7 @@ const draw = () => {
 }
 
 // Game Loop
-const init = () => {
+const loop = () => {
     draw();
     update();
     requestAnimationFrame(loop);
@@ -195,4 +241,4 @@ const roundRect = (x, y, w, h, radius) => {
 }
 */
 
-init();
+loop();
