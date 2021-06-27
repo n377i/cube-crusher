@@ -4,6 +4,7 @@
 let leftArrow = false;
 let rightArrow = false;
 let lives = 3;
+let bricks = [];
 const paddleHeight = 30;
 const paddleWidth = paddleHeight * 4;
 const marginBottom = 90;
@@ -46,7 +47,7 @@ const drawPaddle = () => {
         paddle.w,
         paddle.h
     );*/
-    roundRect(
+    roundedRect(
         paddle.x,
         paddle.y,
         paddle.w,
@@ -79,6 +80,68 @@ const drawBall = () => {
     ctx.closePath();
 }
 
+/*
+const brick = {
+    w: 68,
+    h: 68,
+    rows: 5,
+    cols: 10,
+    gap: 8,
+    marginLeft: 24,
+    marginTop: 24,
+    color: '#7addfa'
+}
+
+const createBricks = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        bricks[r] = [];
+        for (let c = 0; c < brick.cols; c++) {
+            bricks[r][c] = {
+                x: c * (brick.w + brick.gap) + brick.marginLeft,
+                y: r * (brick.h + brick.gap) + brick.marginTop,
+                status: true
+            }
+        }
+    }
+}
+
+createBricks();
+
+const drawBricks = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            let b = bricks[r][c];
+            if (b.status) {
+                    roundedRect(
+                        bricks[r][c].x,
+                        bricks[r][c].y,
+                        brick.w,
+                        brick.h,
+                        10,
+                        brick.color);
+            }
+        }
+    }
+}
+
+const brickCollision = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            let b = bricks[r][c];
+            if (b.status) {
+                if (ball.x + ball.radius > b.x &&
+                    ball.x - ball.radius < b.x + brick.w &&
+                    ball.y + ball.radius > b.y &&
+                    ball.y - ball.radius < b.y + brick.h) {
+                    ball.vy *= -1;
+                    b.status = false;
+                }
+            }
+        }
+    }
+}
+*/
+
 // Steuerung
 document.addEventListener('keydown', function (evt) {
     if (evt.keyCode == 37) {
@@ -95,15 +158,6 @@ document.addEventListener('keyup', function (evt) {
         rightArrow = false;
     }
 })
-
-/*
-document.addEventListener('mousemove', function (evt) {
-    var relativeX = evt.clientX - game.offsetLeft;
-    if ( relativeX > 0 && relativeX < game.width ) {
-        paddle.x = relativeX - paddle.w / 2;
-    }
-    });
-*/
 
 const movePaddle = () => {
     if (rightArrow && paddle.x + paddle.w < game.width) {
@@ -132,34 +186,36 @@ const resetBall = () => {
 
 // Kollisionsabfrage Wand
 const wallCollision = () => {
-    // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert dekrementiert bzw. inkrementiert.
+    // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert umgekehrt.
     if ((ball.x + ball.radius > game.width) ||
-        (ball.x - ball.radius < 0)) 
-        ball.vx *= -1; 
-    // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert inkrementiert.
-    if (ball.y - ball.radius < 0) 
-        ball.vy *= -1; 
+        (ball.x - ball.radius < 0))
+        ball.vx *= -1;
+    // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert umgekehrt.
+    if (ball.y - ball.radius < 0)
+        ball.vy *= -1;
     // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Paddle und Ball werden zurückgesetzt.
-    if (ball.y + ball.radius > game.height - marginBottom) { 
-        lives--; 
-        resetPaddle(); 
-        resetBall(); 
+    if (ball.y + ball.radius > game.height - marginBottom) {
+        lives--;
+        resetPaddle();
+        resetBall();
     }
 }
 
 // Kollisionsabfrage Paddle
 const paddleCollision = () => {
-    // Der Abprall-Winkel hängt davon ab, an welchem Punkt der Ball auf das Paddle trifft.
+    // Prüfen, wo der Ball auftrifft.
     let collisionPoint = ball.x - (paddle.x + paddle.w / 2); // Ballmitte - Paddlemitte
-    collisionPoint /= (paddle.w / 2); // Ergibt Werte zwischen -1 und 1.
-    let angle = collisionPoint * (Math.PI / 3); // Kollisionspunkt * 60° 
+    collisionPoint /= (paddle.w / 2); // Normierung -> Ergibt Werte zwischen -1 und 1
+    let reboundAngle = collisionPoint * (Math.PI / 3); // Abprall-Winkel = Kollisionspunkt * 60° 
 
-    if (ball.y + ball.radius > paddle.y && // Wenn die untere Ballseite die obere Paddleseite übersteigt und
-        ball.x >= paddle.x && // die Ballmitte nicht über die linke Paddleseite und
-        ball.x <= paddle.x + paddle.w // nicht über die rechte Paddleseite hinausragt,
+    // Wenn der Ball mit dem Paddle kollidiert, ergibt die Geschwindigkeit * dem Sinus vom Abprall-Winkel den neuen vx-Wert
+    // und die dekrementierte Geschwindigkeit * dem Cosinus vom Abprall-Winkel den neuen vy-Wert.
+    if (ball.y + ball.radius > paddle.y &&
+        ball.x >= paddle.x &&
+        ball.x <= paddle.x + paddle.w
     ) {
-        ball.vx = ball.speed * Math.sin(angle);
-        ball.vy = -ball.speed * Math.cos(angle);
+        ball.vx = ball.speed * Math.sin(reboundAngle);
+        ball.vy = -ball.speed * Math.cos(reboundAngle);
     }
 }
 
@@ -168,77 +224,17 @@ const update = () => {
     moveBall();
     wallCollision();
     paddleCollision();
+    //brickCollision();
 }
 
 const draw = () => {
-    
     drawGameBG();
-/*
-    // Reihe 1
-    roundRect(23, 23, 70, 70, 10, '#fe4109');
-    roundRect(99, 23, 70, 70, 10);
-    roundRect(175, 23, 70, 70, 10);
-    roundRect(251, 23, 70, 70, 10);
-    roundRect(327, 23, 70, 70, 10);
-    roundRect(403, 23, 70, 70, 10);
-    roundRect(479, 23, 70, 70, 10);
-    roundRect(555, 23, 70, 70, 10);
-    roundRect(631, 23, 70, 70, 10);
-    roundRect(707, 23, 70, 70, 10);
-
-    // Reihe 2
-    roundRect(23, 99, 70, 70, 10, '#fe9901');
-    roundRect(99, 99, 70, 70, 10);
-    roundRect(175, 99, 70, 70, 10);
-    roundRect(251, 99, 70, 70, 10);
-    roundRect(327, 99, 70, 70, 10);
-    roundRect(403, 99, 70, 70, 10);
-    roundRect(479, 99, 70, 70, 10);
-    roundRect(555, 99, 70, 70, 10);
-    roundRect(631, 99, 70, 70, 10);
-    roundRect(707, 99, 70, 70, 10);
-
-    // Reihe 3
-    roundRect(23, 175, 70, 70, 10, '#f5e900');
-    roundRect(99, 175, 70, 70, 10);
-    roundRect(175, 175, 70, 70, 10);
-    roundRect(251, 175, 70, 70, 10);
-    roundRect(327, 175, 70, 70, 10);
-    roundRect(403, 175, 70, 70, 10);
-    roundRect(479, 175, 70, 70, 10);
-    roundRect(555, 175, 70, 70, 10);
-    roundRect(631, 175, 70, 70, 10);
-    roundRect(707, 175, 70, 70, 10);
-
-    // Reihe 4
-    roundRect(23, 251, 70, 70, 10, '#a3db00');
-    roundRect(99, 251, 70, 70, 10);
-    roundRect(175, 251, 70, 70, 10);
-    roundRect(251, 251, 70, 70, 10);
-    roundRect(327, 251, 70, 70, 10);
-    roundRect(403, 251, 70, 70, 10);
-    roundRect(479, 251, 70, 70, 10);
-    roundRect(555, 251, 70, 70, 10);
-    roundRect(631, 251, 70, 70, 10);
-    roundRect(707, 251, 70, 70, 10);
-
-    // Reihe 5
-    roundRect(23, 327, 70, 70, 10, '#7addfa');
-    roundRect(99, 327, 70, 70, 10);
-    roundRect(175, 327, 70, 70, 10);
-    roundRect(251, 327, 70, 70, 10);
-    roundRect(327, 327, 70, 70, 10);
-    roundRect(403, 327, 70, 70, 10);
-    roundRect(479, 327, 70, 70, 10);
-    roundRect(555, 327, 70, 70, 10);
-    roundRect(631, 327, 70, 70, 10);
-    roundRect(707, 327, 70, 70, 10);
-*/
     drawPaddle();
     drawBall();
+    //drawBricks();
 }
 
-// Game Loop
+// INIT
 const init = () => {
     ctx.clearRect(0, 0, game.width, game.height);
     draw();
@@ -246,7 +242,7 @@ const init = () => {
     requestAnimationFrame(init); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
 }
 
-const roundRect = (x, y, w, h, radius, color) => {
+const roundedRect = (x, y, w, h, radius, color) => {
     let r = x + w;
     let b = y + h;
     ctx.beginPath();
