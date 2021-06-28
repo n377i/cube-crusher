@@ -3,8 +3,17 @@
 // VARIABLEN
 let leftArrow = false;
 let rightArrow = false;
-let lives = 3;
 let bricks = [];
+let score = 0;
+let pointsPerBrick = 5;
+let scoreIcon = new Image();
+scoreIcon.src = 'img/score.png';
+let lives = 3;
+let livesIcon = new Image();
+livesIcon.src = 'img/lives.png';
+let highScore = 800;
+let highScoreIcon = new Image();
+highScoreIcon.src = 'img/highscore.png';
 const paddleHeight = 30;
 const paddleWidth = paddleHeight * 4;
 const marginBottom = 90;
@@ -40,13 +49,6 @@ const paddle = {
 }
 
 const drawPaddle = () => {
-    /*ctx.fillStyle = 'white';
-    ctx.fillRect(
-        paddle.x,
-        paddle.y,
-        paddle.w,
-        paddle.h
-    );*/
     roundedRect(
         paddle.x,
         paddle.y,
@@ -80,67 +82,77 @@ const drawBall = () => {
     ctx.closePath();
 }
 
-/*
+// Brick
 const brick = {
     w: 68,
     h: 68,
-    rows: 5,
-    cols: 10,
+    rows: 1,
+    cols: 1,
     gap: 8,
     marginLeft: 24,
     marginTop: 24,
-    color: '#7addfa'
+    color: '#bbb'
 }
 
+/*
+let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa']
+
+const getBrickColor = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {       
+                if (bricks[r] = bricks[0])
+                    return brickColors[0];
+
+                if (bricks[r] = bricks[1])
+                    return brickColors[1];
+
+                if (bricks[r] = bricks[2])
+                    return brickColors[2];
+
+                if (bricks[r] = bricks[3])
+                    return brickColors[3];
+
+                if (bricks[r] = bricks[4])
+                    return brickColors[4];
+            }
+        }
+    }
+*/
+
+
+// Steine positionieren
 const createBricks = () => {
+    // Zeilen
     for (let r = 0; r < brick.rows; r++) {
         bricks[r] = [];
+        // Spalten
         for (let c = 0; c < brick.cols; c++) {
+            // Zweidimensionales Array
             bricks[r][c] = {
                 x: c * (brick.w + brick.gap) + brick.marginLeft,
                 y: r * (brick.h + brick.gap) + brick.marginTop,
-                status: true
+                status: true // Stein wurde noch nicht vom Ball getroffen.
             }
         }
     }
 }
 
-createBricks();
-
+// Steine zeichnen, die noch nicht vom Ball getroffen wurden.
 const drawBricks = () => {
     for (let r = 0; r < brick.rows; r++) {
         for (let c = 0; c < brick.cols; c++) {
-            let b = bricks[r][c];
-            if (b.status) {
-                    roundedRect(
-                        bricks[r][c].x,
-                        bricks[r][c].y,
-                        brick.w,
-                        brick.h,
-                        10,
-                        brick.color);
+            if (bricks[r][c].status) {
+                roundedRect(
+                    bricks[r][c].x,
+                    bricks[r][c].y,
+                    brick.w,
+                    brick.h,
+                    10,
+                    brick.color)
             }
         }
     }
 }
-
-const brickCollision = () => {
-    for (let r = 0; r < brick.rows; r++) {
-        for (let c = 0; c < brick.cols; c++) {
-            let b = bricks[r][c];
-            if (b.status) {
-                if (ball.x + ball.radius > b.x &&
-                    ball.x - ball.radius < b.x + brick.w &&
-                    ball.y + ball.radius > b.y &&
-                    ball.y - ball.radius < b.y + brick.h) {
-                    ball.vy *= -1;
-                    b.status = false;
-                }
-            }
-        }
-    }
-}
-*/
 
 // Steuerung
 document.addEventListener('keydown', function (evt) {
@@ -193,11 +205,12 @@ const wallCollision = () => {
     // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert umgekehrt.
     if (ball.y - ball.radius < 0)
         ball.vy *= -1;
-    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Paddle und Ball werden zurückgesetzt.
+    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Paddle, Ball und Ball-Geschwindigkeit werden zurückgesetzt.
     if (ball.y + ball.radius > game.height - marginBottom) {
         lives--;
         resetPaddle();
         resetBall();
+        ball.speed = 4;
     }
 }
 
@@ -219,44 +232,109 @@ const paddleCollision = () => {
     }
 }
 
+// Kollisionsabfrage Stein
+const brickCollision = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            if (bricks[r][c].status) {
+                // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert umgekehrt und der Stein verschwindet.
+                if (ball.x + ball.radius > bricks[r][c].x &&
+                    ball.x - ball.radius < bricks[r][c].x + brick.w &&
+                    ball.y + ball.radius > bricks[r][c].y &&
+                    ball.y - ball.radius < bricks[r][c].y + brick.h) {
+                    ball.vy *= -1;
+                    ball.speed += 0.1;
+                    score += pointsPerBrick;
+                    bricks[r][c].status = false;
+                }
+            }
+        }
+    }
+}
+
+// Punkte, Leben und HighScore
+const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
+    ctx.drawImage(img, imgX, imgY, 44, 44);
+    ctx.fillStyle = 'white'
+    ctx.font = '44px Bebas Neue';
+    ctx.fillText(text, textX, textY);
+}
+
+let gameOver = false;
+let win = false;
+
+// Spiel veloren
+const gameLost = () => {
+    //Wenn alle Leben verbraucht sind, erscheint ein Alert, bei Klick auf OK wird das Spiel neu geladen.
+    if (lives == 0) {
+        gameOver = true;
+        alert('Spiel verloren');
+        location.reload();
+    }
+}
+
+const gameWon = () => {
+    win = true;
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            win = win && !bricks[r][c].status
+            }
+        }
+        if (win) {
+            gameOver = true;
+            alert('Spiel gewonnen!');
+            location.reload();
+        }
+}
+
 const update = () => {
     movePaddle();
     moveBall();
     wallCollision();
     paddleCollision();
-    //brickCollision();
+    brickCollision();
+    gameLost();
+    gameWon();
 }
 
 const draw = () => {
     drawGameBG();
+    drawBricks();
     drawPaddle();
     drawBall();
-    //drawBricks();
-}
-
-// INIT
-const init = () => {
-    ctx.clearRect(0, 0, game.width, game.height);
-    draw();
-    update();
-    requestAnimationFrame(init); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
+    drawGameStats(scoreIcon, 24, game.height - 66, score, 80, game.height - 28);
+    drawGameStats(livesIcon, game.width / 2 - 38, game.height - 66, lives, game.width / 2 + 18, game.height - 28);
+    drawGameStats(highScoreIcon, game.width - 132, game.height - 66, highScore, game.width - 76, game.height - 28);
 }
 
 const roundedRect = (x, y, w, h, radius, color) => {
-    let r = x + w;
+    let a = x + w;
     let b = y + h;
     ctx.beginPath();
     ctx.fillStyle = color;
     ctx.moveTo(x + radius, y);
-    ctx.lineTo(r - radius, y);
-    ctx.quadraticCurveTo(r, y, r, y + radius);
-    ctx.lineTo(r, y + h - radius);
-    ctx.quadraticCurveTo(r, b, r - radius, b);
+    ctx.lineTo(a - radius, y);
+    ctx.quadraticCurveTo(a, y, a, y + radius);
+    ctx.lineTo(a, y + h - radius);
+    ctx.quadraticCurveTo(a, b, a - radius, b);
     ctx.lineTo(x + radius, b);
     ctx.quadraticCurveTo(x, b, x, b - radius);
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.fill();
+    ctx.closePath();
 }
 
-init();
+createBricks();
+
+// Spielschleife
+const gameLoop = () => {
+    ctx.clearRect(0, 0, game.width, game.height);
+    draw();
+    update();
+    if (!gameOver) {
+    requestAnimationFrame(gameLoop); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
+    }
+}
+
+gameLoop();
