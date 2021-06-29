@@ -49,7 +49,7 @@ const ball = {
 const brick = {
     w: 68,
     h: 68,
-    rows: 2,
+    rows: 5,
     cols: 10,
     gap: 8,
     marginLeft: 24,
