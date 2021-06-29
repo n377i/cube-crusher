@@ -4,7 +4,6 @@
 
 let leftArrow = false;
 let rightArrow = false;
-let bricks = [];
 let score = 0;
 let pointsPerBrick = 5;
 let scoreIcon = new Image();
@@ -19,6 +18,8 @@ let gameOver = false;
 let win = false;
 let marginBottom = 90;
 let ballRadius = 16;
+let bricks = [];
+let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa']
 
 // Canvas und Kontext
 const game = document.querySelector('#game');
@@ -54,7 +55,6 @@ const brick = {
     gap: 8,
     marginLeft: 24,
     marginTop: 24,
-    color: '#bbb'
 }
 
 
@@ -119,16 +119,11 @@ const drawBricks = () => {
                     brick.w,
                     brick.h,
                     10,
-                    brick.color);
+                    brickColors[r]);
             }
         }
     }
 }
-
-/*
-let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa']
-let getColor = brickColors[Math.floor(Math.random() * brickColors.length)]
-*/
 
 // Steine positionieren
 const createBricks = () => {
