@@ -11,7 +11,7 @@ scoreIcon.src = 'img/score.png';
 let lives = 3;
 let livesIcon = new Image();
 livesIcon.src = 'img/lives.png';
-let highScore = 800;
+let highScore = 0;
 let highScoreIcon = new Image();
 highScoreIcon.src = 'img/highscore.png';
 const paddleHeight = 30;
@@ -65,7 +65,7 @@ const ball = {
     y: paddle.y - ballRadius,
     vx: 3 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
     vy: -3,
-    speed: 4
+    speed: 5
 }
 
 const drawBall = () => {
@@ -86,8 +86,8 @@ const drawBall = () => {
 const brick = {
     w: 68,
     h: 68,
-    rows: 1,
-    cols: 1,
+    rows: 2,
+    cols: 10,
     gap: 8,
     marginLeft: 24,
     marginTop: 24,
@@ -96,29 +96,8 @@ const brick = {
 
 /*
 let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa']
-
-const getBrickColor = () => {
-    for (let r = 0; r < brick.rows; r++) {
-        for (let c = 0; c < brick.cols; c++) {       
-                if (bricks[r] = bricks[0])
-                    return brickColors[0];
-
-                if (bricks[r] = bricks[1])
-                    return brickColors[1];
-
-                if (bricks[r] = bricks[2])
-                    return brickColors[2];
-
-                if (bricks[r] = bricks[3])
-                    return brickColors[3];
-
-                if (bricks[r] = bricks[4])
-                    return brickColors[4];
-            }
-        }
-    }
+let getColor = brickColors[Math.floor(Math.random() * brickColors.length)]
 */
-
 
 // Steine positionieren
 const createBricks = () => {
@@ -148,7 +127,7 @@ const drawBricks = () => {
                     brick.w,
                     brick.h,
                     10,
-                    brick.color)
+                    brick.color);
             }
         }
     }
@@ -210,7 +189,7 @@ const wallCollision = () => {
         lives--;
         resetPaddle();
         resetBall();
-        ball.speed = 4;
+        ball.speed = 5;
     }
 }
 
@@ -252,7 +231,7 @@ const brickCollision = () => {
     }
 }
 
-// Punkte, Leben und HighScore
+// Punkte, Leben und HighScore zeichnen
 const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
     ctx.drawImage(img, imgX, imgY, 44, 44);
     ctx.fillStyle = 'white'
@@ -265,26 +244,52 @@ let win = false;
 
 // Spiel veloren
 const gameLost = () => {
-    //Wenn alle Leben verbraucht sind, erscheint ein Alert, bei Klick auf OK wird das Spiel neu geladen.
-    if (lives == 0) {
+    // Wenn alle Leben verbraucht sind, erscheint das Loser Pop-up.
+    if (!lives) {
         gameOver = true;
-        alert('Spiel verloren');
-        location.reload();
+        document.getElementById('loser').classList.remove('hidepopup');
+        document.getElementById('resultloser').textContent = `Du hast immerhin ${score} Punkte erreicht!`;
+
+        // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
+        const newChance = document.querySelector("#newchance");
+        newChance.addEventListener('click', function () {
+            document.getElementById('loser').classList.add('hidepopup');
+            document.location.reload();
+        });
+        // Falls es einen neuen Highscore gibt, wird dieser gespeichert.
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', score);
+        }
     }
 }
 
+// Spiel gewonnen
 const gameWon = () => {
+    // Wenn alle Steine zerstört wurden, erscheint das Winner Pop-up.
     win = true;
     for (let r = 0; r < brick.rows; r++) {
         for (let c = 0; c < brick.cols; c++) {
             win = win && !bricks[r][c].status
-            }
         }
-        if (win) {
-            gameOver = true;
-            alert('Spiel gewonnen!');
-            location.reload();
+    }
+    if (win) {
+        gameOver = true;
+        document.getElementById('winner').classList.remove('hidepopup');
+        document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht!`;
+
+        // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
+        const newGame = document.querySelector("#newgame");
+        newGame.addEventListener('click', function () {
+            document.getElementById('winner').classList.add('hidepopup');
+            document.location.reload();
+        });
+        // Falls es einen neuen Highscore gibt, wird dieser gespeichert.
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', score);
         }
+    }
 }
 
 const update = () => {
@@ -325,7 +330,17 @@ const roundedRect = (x, y, w, h, radius, color) => {
     ctx.closePath();
 }
 
+const init = () => {
+    // Highscore laden
+const scoreStr = localStorage.getItem('highScore');
+if (scoreStr == null) {
+    highScore = 0;
+} else {
+    highScore = scoreStr;
+}
 createBricks();
+gameLoop();
+}
 
 // Spielschleife
 const gameLoop = () => {
@@ -333,8 +348,8 @@ const gameLoop = () => {
     draw();
     update();
     if (!gameOver) {
-    requestAnimationFrame(gameLoop); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
+        requestAnimationFrame(gameLoop); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
     }
 }
 
-gameLoop();
+init();
