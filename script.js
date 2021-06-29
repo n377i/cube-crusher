@@ -1,6 +1,7 @@
 'use strict';
 
 // VARIABLEN
+
 let leftArrow = false;
 let rightArrow = false;
 let bricks = [];
@@ -14,10 +15,10 @@ livesIcon.src = 'img/lives.png';
 let highScore = 0;
 let highScoreIcon = new Image();
 highScoreIcon.src = 'img/highscore.png';
-const paddleHeight = 30;
-const paddleWidth = paddleHeight * 4;
-const marginBottom = 90;
-const ballRadius = 16;
+let gameOver = false;
+let win = false;
+let marginBottom = 90;
+let ballRadius = 16;
 
 // Canvas und Kontext
 const game = document.querySelector('#game');
@@ -25,7 +26,41 @@ game.width = 800;
 game.height = game.width;
 const ctx = game.getContext('2d');
 
-// Hintergrund-Verlauf
+// Paddle
+const paddle = {
+    x: (game.width - 120) / 2,
+    y: game.height - 30 - marginBottom,
+    w: 120,
+    h: 30,
+    speed: 6
+}
+
+// Ball
+const ball = {
+    radius: ballRadius,
+    x: game.width / 2,
+    y: paddle.y - ballRadius,
+    vx: 3 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
+    vy: -3,
+    speed: 5
+}
+
+// Stein
+const brick = {
+    w: 68,
+    h: 68,
+    rows: 2,
+    cols: 10,
+    gap: 8,
+    marginLeft: 24,
+    marginTop: 24,
+    color: '#bbb'
+}
+
+
+// FUNKTIONEN
+
+// Hintergrund-Verlauf zeichnen
 const drawGameBG = () => {
     let background = ctx.createLinearGradient(0, 0, 0, 800);
     background.addColorStop(0, '#111');
@@ -39,15 +74,15 @@ const drawGameBG = () => {
     );
 }
 
-// Paddle
-const paddle = {
-    x: (game.width - paddleWidth) / 2,
-    y: game.height - paddleHeight - marginBottom,
-    w: paddleWidth,
-    h: paddleHeight,
-    speed: 6
+// Punkte, Leben und HighScore zeichnen
+const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
+    ctx.drawImage(img, imgX, imgY, 44, 44);
+    ctx.fillStyle = 'white'
+    ctx.font = '44px Bebas Neue';
+    ctx.fillText(text, textX, textY);
 }
 
+// Paddle zeichnen
 const drawPaddle = () => {
     roundedRect(
         paddle.x,
@@ -58,16 +93,7 @@ const drawPaddle = () => {
         'white');
 }
 
-// Ball
-const ball = {
-    radius: ballRadius,
-    x: game.width / 2,
-    y: paddle.y - ballRadius,
-    vx: 3 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
-    vy: -3,
-    speed: 5
-}
-
+// Ball zeichnen
 const drawBall = () => {
     ctx.beginPath();
     ctx.arc(
@@ -82,16 +108,21 @@ const drawBall = () => {
     ctx.closePath();
 }
 
-// Brick
-const brick = {
-    w: 68,
-    h: 68,
-    rows: 2,
-    cols: 10,
-    gap: 8,
-    marginLeft: 24,
-    marginTop: 24,
-    color: '#bbb'
+// Steine zeichnen, die noch nicht vom Ball getroffen wurden.
+const drawBricks = () => {
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            if (bricks[r][c].status) {
+                roundedRect(
+                    bricks[r][c].x,
+                    bricks[r][c].y,
+                    brick.w,
+                    brick.h,
+                    10,
+                    brick.color);
+            }
+        }
+    }
 }
 
 /*
@@ -116,41 +147,22 @@ const createBricks = () => {
     }
 }
 
-// Steine zeichnen, die noch nicht vom Ball getroffen wurden.
-const drawBricks = () => {
-    for (let r = 0; r < brick.rows; r++) {
-        for (let c = 0; c < brick.cols; c++) {
-            if (bricks[r][c].status) {
-                roundedRect(
-                    bricks[r][c].x,
-                    bricks[r][c].y,
-                    brick.w,
-                    brick.h,
-                    10,
-                    brick.color);
-            }
-        }
-    }
-}
-
-// Steuerung
-document.addEventListener('keydown', function (evt) {
-    if (evt.keyCode == 37) {
-        leftArrow = true;
-    } else if (evt.keyCode == 39) {
-        rightArrow = true;
-    }
-})
-
-document.addEventListener('keyup', function (evt) {
-    if (evt.keyCode == 37) {
-        leftArrow = false;
-    } else if (evt.keyCode == 39) {
-        rightArrow = false;
-    }
-})
-
+// Paddle Steuerung
 const movePaddle = () => {
+    document.addEventListener('keydown', function (evt) {
+        if (evt.keyCode == 37) {
+            leftArrow = true;
+        } else if (evt.keyCode == 39) {
+            rightArrow = true;
+        }
+    })
+    document.addEventListener('keyup', function (evt) {
+        if (evt.keyCode == 37) {
+            leftArrow = false;
+        } else if (evt.keyCode == 39) {
+            rightArrow = false;
+        }
+    })
     if (rightArrow && paddle.x + paddle.w < game.width) {
         paddle.x += paddle.speed;
     } else if (leftArrow && paddle.x > 0) {
@@ -158,24 +170,13 @@ const movePaddle = () => {
     }
 }
 
-const resetPaddle = () => {
-    paddle.x = (game.width - paddle.w) / 2;
-    paddle.y = game.height - paddle.h - marginBottom;
-}
-
+// Ball Bewegung
 const moveBall = () => {
     ball.x += ball.vx;
     ball.y += ball.vy;
 }
 
-const resetBall = () => {
-    ball.x = game.width / 2;
-    ball.y = paddle.y - ballRadius;
-    ball.vx = 3 * (Math.random() * 2 - 1);
-    ball.vy = -3;
-}
-
-// Kollisionsabfrage Wand
+// Kollisionserkennung Wand
 const wallCollision = () => {
     // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert umgekehrt.
     if ((ball.x + ball.radius > game.width) ||
@@ -193,7 +194,7 @@ const wallCollision = () => {
     }
 }
 
-// Kollisionsabfrage Paddle
+// Kollisionserkennung Paddle
 const paddleCollision = () => {
     // Prüfen, wo der Ball auftrifft.
     let collisionPoint = ball.x - (paddle.x + paddle.w / 2); // Ballmitte - Paddlemitte
@@ -211,36 +212,40 @@ const paddleCollision = () => {
     }
 }
 
-// Kollisionsabfrage Stein
+// Kollisionserkennung Stein
 const brickCollision = () => {
     for (let r = 0; r < brick.rows; r++) {
         for (let c = 0; c < brick.cols; c++) {
             if (bricks[r][c].status) {
-                // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert umgekehrt und der Stein verschwindet.
+                // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert umgekehrt, die Ball-Geschwindigkeit erhöht sich,
+                // der Stein verschwindet, Punkte werden zugezählt.
                 if (ball.x + ball.radius > bricks[r][c].x &&
                     ball.x - ball.radius < bricks[r][c].x + brick.w &&
                     ball.y + ball.radius > bricks[r][c].y &&
                     ball.y - ball.radius < bricks[r][c].y + brick.h) {
                     ball.vy *= -1;
                     ball.speed += 0.1;
-                    score += pointsPerBrick;
                     bricks[r][c].status = false;
+                    score += pointsPerBrick;
                 }
             }
         }
     }
 }
 
-// Punkte, Leben und HighScore zeichnen
-const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
-    ctx.drawImage(img, imgX, imgY, 44, 44);
-    ctx.fillStyle = 'white'
-    ctx.font = '44px Bebas Neue';
-    ctx.fillText(text, textX, textY);
+// Paddle zurücksetzen
+const resetPaddle = () => {
+    paddle.x = (game.width - paddle.w) / 2;
+    paddle.y = game.height - paddle.h - marginBottom;
 }
 
-let gameOver = false;
-let win = false;
+// Ball zurücksetzen
+const resetBall = () => {
+    ball.x = game.width / 2;
+    ball.y = paddle.y - ballRadius;
+    ball.vx = 3 * (Math.random() * 2 - 1);
+    ball.vy = -3;
+}
 
 // Spiel veloren
 const gameLost = () => {
@@ -248,7 +253,7 @@ const gameLost = () => {
     if (!lives) {
         gameOver = true;
         document.getElementById('loser').classList.remove('hidepopup');
-        document.getElementById('resultloser').textContent = `Du hast immerhin ${score} Punkte erreicht!`;
+        document.getElementById('resultloser').textContent = `Du hast immerhin ${score} Punkte erreicht.`;
 
         // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
         const newChance = document.querySelector("#newchance");
@@ -276,7 +281,7 @@ const gameWon = () => {
     if (win) {
         gameOver = true;
         document.getElementById('winner').classList.remove('hidepopup');
-        document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht!`;
+        document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht.`;
 
         // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
         const newGame = document.querySelector("#newgame");
@@ -312,6 +317,7 @@ const draw = () => {
     drawGameStats(highScoreIcon, game.width - 132, game.height - 66, highScore, game.width - 76, game.height - 28);
 }
 
+// Runde Ecken für Paddle und Steine
 const roundedRect = (x, y, w, h, radius, color) => {
     let a = x + w;
     let b = y + h;
@@ -330,26 +336,30 @@ const roundedRect = (x, y, w, h, radius, color) => {
     ctx.closePath();
 }
 
-const init = () => {
-    // Highscore laden
-const scoreStr = localStorage.getItem('highScore');
-if (scoreStr == null) {
-    highScore = 0;
-} else {
-    highScore = scoreStr;
-}
-createBricks();
-gameLoop();
-}
-
 // Spielschleife
 const gameLoop = () => {
     ctx.clearRect(0, 0, game.width, game.height);
     draw();
     update();
+    // Solange das Spiel noch nicht vorbei ist, wird die Spielschleife vor jedem erneuten Rendern des Browserfensters aufgerufen (effizienter als Zeitintervalle).
     if (!gameOver) {
-        requestAnimationFrame(gameLoop); // ruft vor jedem erneuten Rendern des Browserfensters die Animations-Funktion auf - effizienter als Zeitintervalle.
+        requestAnimationFrame(gameLoop);
     }
 }
+
+// Highscore laden, Steine erstellen, Spielschleife starten
+const init = () => {
+    const scoreStr = localStorage.getItem('highScore');
+    if (scoreStr == null) {
+        highScore = 0;
+    } else {
+        highScore = scoreStr;
+    }
+    createBricks();
+    gameLoop();
+}
+
+
+// INIT
 
 init();
