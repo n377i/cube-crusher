@@ -5,7 +5,7 @@
 let leftArrow = false;
 let rightArrow = false;
 let score = 0;
-let pointsPerBrick = 5;
+let pointsPerBrick = [25, 20, 15, 10, 5];
 let scoreIcon = new Image();
 scoreIcon.src = 'img/score.png';
 let lives = 3;
@@ -19,7 +19,7 @@ let win = false;
 let marginBottom = 90;
 let ballRadius = 16;
 let bricks = [];
-let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa']
+let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa'];
 
 // Canvas und Kontext
 const game = document.querySelector('#game');
@@ -221,7 +221,7 @@ const brickCollision = () => {
                     ball.vy *= -1;
                     ball.speed += 0.1;
                     bricks[r][c].status = false;
-                    score += pointsPerBrick;
+                    score += pointsPerBrick[r];
                 }
             }
         }
