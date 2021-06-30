@@ -261,6 +261,41 @@ const resetBall = () => {
     ball.vy = -4;
 }
 
+// High Score aktualisieren (Post-Request an Server)
+const setHighScore = () => {
+    fetch('/highscore', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            score
+        }),
+    }).then(res => res.json()).then(data => {
+        console.log(data);
+        highScore = data.highScore
+    }).catch(err =>
+        console.error(err.message)
+    );
+}
+
+// High Score laden (Get-Request an Server)
+const getHighScore = () => {
+    // Get-Request
+    // Fetch Funktion gibt einen Promise zurück
+    fetch('/highscore').then(
+        // then-Methode gibt ein Promise Objekt zurück.
+        // Erhaltene Daten werden in ein json-Format konvertiert.
+        res => res.json()
+        // Die Daten werden ausgegeben.
+    ).then(data => {
+        console.log(data);
+        highScore = data.highScore
+    }).catch(err =>
+        console.error(err.message)
+    );
+}
+
 // Spiel veloren
 const gameLost = () => {
     // Wenn alle Leben verbraucht sind, erscheint das Loser Pop-up.
@@ -275,11 +310,7 @@ const gameLost = () => {
             document.getElementById('loser').classList.add('hidepopup');
             document.location.reload();
         });
-        // Falls es einen neuen Highscore gibt, wird dieser gespeichert.
-        if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('highScore', score);
-        }
+        setHighScore();
     }
 }
 
@@ -303,14 +334,11 @@ const gameWon = () => {
             document.getElementById('winner').classList.add('hidepopup');
             document.location.reload();
         });
-        // Falls es einen neuen Highscore gibt, wird dieser gespeichert.
-        if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('highScore', score);
-        }
+        setHighScore();
     }
 }
 
+// Alle Updates
 const update = () => {
     movePaddle();
     moveBall();
@@ -321,6 +349,7 @@ const update = () => {
     gameWon();
 }
 
+// Alle Zeichnungen
 const draw = () => {
     drawGameBG();
     drawBricks();
@@ -342,14 +371,9 @@ const gameLoop = () => {
     }
 }
 
-// Highscore laden, Steine erstellen, Spielschleife starten
+// High Score laden, Steine erstellen, Spielschleife starten
 const init = () => {
-    const scoreStr = localStorage.getItem('highScore');
-    if (scoreStr == null) {
-        highScore = 0;
-    } else {
-        highScore = scoreStr;
-    }
+    getHighScore();
     createBricks();
     gameLoop();
 }
