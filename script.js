@@ -27,7 +27,7 @@ game.width = 800;
 game.height = game.width;
 const ctx = game.getContext('2d');
 
-// Paddle
+// Schläger
 const paddle = {
     x: (game.width - 120) / 2,
     y: game.height - 30 - marginBottom,
@@ -41,8 +41,8 @@ const ball = {
     radius: ballRadius,
     x: game.width / 2,
     y: paddle.y - ballRadius,
-    vx: 3 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
-    vy: -3,
+    vx: 4 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
+    vy: -4,
     speed: 5
 }
 
@@ -82,7 +82,26 @@ const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
     ctx.fillText(text, textX, textY);
 }
 
-// Paddle zeichnen
+// Runde Ecken für Schläger und Steine
+const roundedRect = (x, y, w, h, radius, color) => {
+    let a = x + w;
+    let b = y + h;
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(a - radius, y);
+    ctx.quadraticCurveTo(a, y, a, y + radius);
+    ctx.lineTo(a, y + h - radius);
+    ctx.quadraticCurveTo(a, b, a - radius, b);
+    ctx.lineTo(x + radius, b);
+    ctx.quadraticCurveTo(x, b, x, b - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.fill();
+    ctx.closePath();
+}
+
+// Schläger zeichnen
 const drawPaddle = () => {
     roundedRect(
         paddle.x,
@@ -142,7 +161,7 @@ const createBricks = () => {
     }
 }
 
-// Paddle Steuerung
+// Schläger Steuerung
 const movePaddle = () => {
     document.addEventListener('keydown', function (evt) {
         if (evt.keyCode == 37) {
@@ -173,14 +192,14 @@ const moveBall = () => {
 
 // Kollisionserkennung Wand
 const wallCollision = () => {
-    // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert umgekehrt.
+    // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert negiert.
     if ((ball.x + ball.radius > game.width) ||
         (ball.x - ball.radius < 0))
         ball.vx *= -1;
-    // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert umgekehrt.
+    // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert negiert.
     if (ball.y - ball.radius < 0)
         ball.vy *= -1;
-    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Paddle, Ball und Ball-Geschwindigkeit werden zurückgesetzt.
+    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Schläger, Ball und Ball-Geschwindigkeit werden zurückgesetzt.
     if (ball.y + ball.radius > game.height - marginBottom) {
         lives--;
         resetPaddle();
@@ -189,14 +208,14 @@ const wallCollision = () => {
     }
 }
 
-// Kollisionserkennung Paddle
+// Kollisionserkennung Schläger
 const paddleCollision = () => {
     // Prüfen, wo der Ball auftrifft.
-    let collisionPoint = ball.x - (paddle.x + paddle.w / 2); // Ballmitte - Paddlemitte
+    let collisionPoint = ball.x - (paddle.x + paddle.w / 2); // Ballmitte - Schlägermitte
     collisionPoint /= (paddle.w / 2); // Normierung -> Ergibt Werte zwischen -1 und 1
     let reboundAngle = collisionPoint * (Math.PI / 3); // Abprall-Winkel = Kollisionspunkt * 60° 
 
-    // Wenn der Ball mit dem Paddle kollidiert, ergibt die Geschwindigkeit * dem Sinus vom Abprall-Winkel den neuen vx-Wert
+    // Wenn der Ball mit dem Schläger kollidiert, ergibt die Geschwindigkeit * dem Sinus vom Abprall-Winkel den neuen vx-Wert
     // und die dekrementierte Geschwindigkeit * dem Cosinus vom Abprall-Winkel den neuen vy-Wert.
     if (ball.y + ball.radius > paddle.y &&
         ball.x >= paddle.x &&
@@ -212,7 +231,7 @@ const brickCollision = () => {
     for (let r = 0; r < brick.rows; r++) {
         for (let c = 0; c < brick.cols; c++) {
             if (bricks[r][c].status) {
-                // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert umgekehrt, die Ball-Geschwindigkeit erhöht sich,
+                // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert negiert, die Ball-Geschwindigkeit erhöht sich,
                 // der Stein verschwindet, Punkte werden zugezählt.
                 if (ball.x + ball.radius > bricks[r][c].x &&
                     ball.x - ball.radius < bricks[r][c].x + brick.w &&
@@ -228,7 +247,7 @@ const brickCollision = () => {
     }
 }
 
-// Paddle zurücksetzen
+// Schläger zurücksetzen
 const resetPaddle = () => {
     paddle.x = (game.width - paddle.w) / 2;
     paddle.y = game.height - paddle.h - marginBottom;
@@ -238,8 +257,8 @@ const resetPaddle = () => {
 const resetBall = () => {
     ball.x = game.width / 2;
     ball.y = paddle.y - ballRadius;
-    ball.vx = 3 * (Math.random() * 2 - 1);
-    ball.vy = -3;
+    ball.vx = 4 * (Math.random() * 2 - 1);
+    ball.vy = -4;
 }
 
 // Spiel veloren
@@ -250,7 +269,7 @@ const gameLost = () => {
         document.getElementById('loser').classList.remove('hidepopup');
         document.getElementById('resultloser').textContent = `Du hast immerhin ${score} Punkte erreicht.`;
 
-        // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
+        // Bei Klick auf "Nochmal versuchen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
         const newChance = document.querySelector("#newchance");
         newChance.addEventListener('click', function () {
             document.getElementById('loser').classList.add('hidepopup');
@@ -310,25 +329,6 @@ const draw = () => {
     drawGameStats(scoreIcon, 24, game.height - 66, score, 80, game.height - 28);
     drawGameStats(livesIcon, game.width / 2 - 38, game.height - 66, lives, game.width / 2 + 18, game.height - 28);
     drawGameStats(highScoreIcon, game.width - 132, game.height - 66, highScore, game.width - 76, game.height - 28);
-}
-
-// Runde Ecken für Paddle und Steine
-const roundedRect = (x, y, w, h, radius, color) => {
-    let a = x + w;
-    let b = y + h;
-    ctx.beginPath();
-    ctx.fillStyle = color;
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(a - radius, y);
-    ctx.quadraticCurveTo(a, y, a, y + radius);
-    ctx.lineTo(a, y + h - radius);
-    ctx.quadraticCurveTo(a, b, a - radius, b);
-    ctx.lineTo(x + radius, b);
-    ctx.quadraticCurveTo(x, b, x, b - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.fill();
-    ctx.closePath();
 }
 
 // Spielschleife
