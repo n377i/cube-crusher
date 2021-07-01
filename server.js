@@ -2,6 +2,7 @@
 
 // SERVER AUFBAU
 
+const opn = require('better-opn');
 const express = require('express');
 const server = express();
 
@@ -43,4 +44,5 @@ server.post('/highscore', (req, res) => {
 server.listen(3000, err => {
     if (err) console.log('Error:', err);
     else console.log('Server läuft');
+    opn('http://localhost:3000');
 });

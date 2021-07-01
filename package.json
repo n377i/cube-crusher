@@ -1,14 +1,15 @@
 {
   "name": "cubecrusher",
   "version": "1.0.0",
-  "description": "",
+  "description": "Breakout Game",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "A. Wöhler",
+  "author": "Annette Wöhler",
   "license": "ISC",
   "dependencies": {
+    "better-opn": "^3.0.0",
     "express": "^4.17.1"
   }
 }
