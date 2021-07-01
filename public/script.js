@@ -12,7 +12,7 @@ livesIcon.src = 'img/lives.png';
 let level = 1;
 let levelIcon = new Image();
 levelIcon.src = 'img/level.png';
-let highScore = 800;
+let highScore = 2000;
 let highScoreIcon = new Image();
 highScoreIcon.src = 'img/highscore.png';
 let leftArrow = false;
@@ -370,9 +370,9 @@ const draw = () => {
     drawPaddle();
     drawBall();
     drawGameStats(scoreIcon, 24, game.height - 66, score, 80, game.height - 28);
-    drawGameStats(livesIcon, 238, game.height - 66, lives, 294, game.height - 28);
-    drawGameStats(levelIcon, 453, game.height - 66, level, 509, game.height - 28);
-    drawGameStats(highScoreIcon, 667, game.height - 66, highScore, 723, game.height - 28);
+    drawGameStats(livesIcon, 233, game.height - 66, lives, 289, game.height - 28);
+    drawGameStats(levelIcon, 441, game.height - 66, level, 497, game.height - 28);
+    drawGameStats(highScoreIcon, 650, game.height - 66, highScore, 706, game.height - 28);
 }
 
 // Spielschleife
