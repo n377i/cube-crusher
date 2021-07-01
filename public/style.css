@@ -19,22 +19,13 @@ canvas {
     right: 0;
 }
 
-h1 {
-    font-size: 4.2em;
-    margin: 10px 0 0 0;
-}
-
 h2 {
     font-size: 3.6em;
-}
-
-h1, h2 {
     font-family: 'Bebas Neue', cursive;
     color: #333;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     line-height: 1.6em;
-    text-align: center;
 }
 
 #newgame,

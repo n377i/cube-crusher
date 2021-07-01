@@ -2,8 +2,6 @@
 
 // VARIABLEN
 
-let leftArrow = false;
-let rightArrow = false;
 let score = 0;
 let pointsPerBrick = [25, 20, 15, 10, 5];
 let scoreIcon = new Image();
@@ -11,12 +9,19 @@ scoreIcon.src = 'img/score.png';
 let lives = 3;
 let livesIcon = new Image();
 livesIcon.src = 'img/lives.png';
-let highScore = 0;
+let level = 1;
+let levelIcon = new Image();
+levelIcon.src = 'img/level.png';
+let highScore = 800;
 let highScoreIcon = new Image();
 highScoreIcon.src = 'img/highscore.png';
+let leftArrow = false;
+let rightArrow = false;
 let gameOver = false;
-let win = false;
+let levelComplete = false;
 let marginBottom = 90;
+let paddleWidth = 120;
+let paddleHeight = 30;
 let ballRadius = 16;
 let bricks = [];
 let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa'];
@@ -29,11 +34,11 @@ const ctx = game.getContext('2d');
 
 // Schläger
 const paddle = {
-    x: (game.width - 120) / 2,
-    y: game.height - 30 - marginBottom,
-    w: 120,
-    h: 30,
-    speed: 6
+    x: (game.width - paddleWidth) / 2,
+    y: game.height - paddleHeight - marginBottom,
+    w: paddleWidth,
+    h: paddleHeight,
+    speed: 5
 }
 
 // Ball
@@ -50,7 +55,7 @@ const ball = {
 const brick = {
     w: 68,
     h: 68,
-    rows: 5,
+    rows: 1,
     cols: 10,
     gap: 8,
     marginLeft: 24,
@@ -74,7 +79,24 @@ const drawGameBG = () => {
     );
 }
 
-// Punkte, Leben und HighScore zeichnen
+// Steine positionieren
+const createBricks = () => {
+    // Zeilen
+    for (let r = 0; r < brick.rows; r++) {
+        bricks[r] = [];
+        // Spalten
+        for (let c = 0; c < brick.cols; c++) {
+            // Zweidimensionales Array
+            bricks[r][c] = {
+                x: c * (brick.w + brick.gap) + brick.marginLeft,
+                y: r * (brick.h + brick.gap) + brick.marginTop,
+                status: true // Stein wurde noch nicht vom Ball getroffen.
+            }
+        }
+    }
+}
+
+// Punkte, Leben, Level und HighScore zeichnen
 const drawGameStats = (img, imgX, imgY, text, textX, textY) => {
     ctx.drawImage(img, imgX, imgY, 44, 44);
     ctx.fillStyle = 'white'
@@ -144,23 +166,6 @@ const drawBricks = () => {
     }
 }
 
-// Steine positionieren
-const createBricks = () => {
-    // Zeilen
-    for (let r = 0; r < brick.rows; r++) {
-        bricks[r] = [];
-        // Spalten
-        for (let c = 0; c < brick.cols; c++) {
-            // Zweidimensionales Array
-            bricks[r][c] = {
-                x: c * (brick.w + brick.gap) + brick.marginLeft,
-                y: r * (brick.h + brick.gap) + brick.marginTop,
-                status: true // Stein wurde noch nicht vom Ball getroffen.
-            }
-        }
-    }
-}
-
 // Schläger Steuerung
 const movePaddle = () => {
     document.addEventListener('keydown', function (evt) {
@@ -177,6 +182,7 @@ const movePaddle = () => {
             rightArrow = false;
         }
     })
+    // Das Paddle lässt sich nach rechts und links bewegen, bis es mit der rechten oder linken Wand kollidiert.
     if (rightArrow && paddle.x + paddle.w < game.width) {
         paddle.x += paddle.speed;
     } else if (leftArrow && paddle.x > 0) {
@@ -199,12 +205,11 @@ const wallCollision = () => {
     // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert negiert.
     if (ball.y - ball.radius < 0)
         ball.vy *= -1;
-    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Schläger, Ball und Ball-Geschwindigkeit werden zurückgesetzt.
+    // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Schläger und Ball werden zurückgesetzt.
     if (ball.y + ball.radius > game.height - marginBottom) {
         lives--;
         resetPaddle();
         resetBall();
-        ball.speed = 5;
     }
 }
 
@@ -216,14 +221,16 @@ const paddleCollision = () => {
     let reboundAngle = collisionPoint * (Math.PI / 3); // Abprall-Winkel = Kollisionspunkt * 60° 
 
     // Wenn der Ball mit dem Schläger kollidiert, ergibt die Geschwindigkeit * dem Sinus vom Abprall-Winkel den neuen vx-Wert
-    // und die dekrementierte Geschwindigkeit * dem Cosinus vom Abprall-Winkel den neuen vy-Wert.
+    // und die negierte Geschwindigkeit * dem Cosinus vom Abprall-Winkel den neuen vy-Wert.
+    // Die Ball-Geschwindigkeit wird leicht erhöht.
     if (ball.y + ball.radius > paddle.y &&
         ball.x >= paddle.x &&
         ball.x <= paddle.x + paddle.w
     ) {
         ball.vx = ball.speed * Math.sin(reboundAngle);
         ball.vy = -ball.speed * Math.cos(reboundAngle);
-    }
+        ball.speed += 0.1;
+    } 
 }
 
 // Kollisionserkennung Stein
@@ -238,7 +245,7 @@ const brickCollision = () => {
                     ball.y + ball.radius > bricks[r][c].y &&
                     ball.y - ball.radius < bricks[r][c].y + brick.h) {
                     ball.vy *= -1;
-                    ball.speed += 0.1;
+                    ball.speed += 0.05;
                     bricks[r][c].status = false;
                     score += pointsPerBrick[r];
                 }
@@ -259,41 +266,72 @@ const resetBall = () => {
     ball.y = paddle.y - ballRadius;
     ball.vx = 4 * (Math.random() * 2 - 1);
     ball.vy = -4;
+    ball.speed = 5;
 }
 
-// High Score aktualisieren (Post-Request an Server)
-const setHighScore = () => {
+// High Score speichern (POST Request an Server)
+const postHighScore = () => {
     fetch('/highscore', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            score
-        }),
-    }).then(res => res.json()).then(data => {
-        console.log(data);
-        highScore = data.highScore
-    }).catch(err =>
-        console.error(err.message)
-    );
-}
-
-// High Score laden (Get-Request an Server)
-const getHighScore = () => {
-    // Get-Request
-    // Fetch Funktion gibt einen Promise zurück
-    fetch('/highscore').then(
-        // then-Methode gibt ein Promise Objekt zurück.
-        // Erhaltene Daten werden in ein json-Format konvertiert.
-        res => res.json()
-        // Die Daten werden ausgegeben.
+        headers: {'content-type': 'application/json',},
+        body: JSON.stringify({score})
+    // Erhaltene Daten werden in JSON konvertiert.
+    }).then(res => res.json()
+    // Daten werden ausgegeben.
     ).then(data => {
         console.log(data);
         highScore = data.highScore
     }).catch(err =>
-        console.error(err.message)
+        console.error('Error:', err)
     );
+}
+
+// High Score laden (GET Request an Server)
+const getHighScore = () => {
+    fetch('/highscore').then(
+        // Erhaltene Daten werden in JSON konvertiert.
+        res => res.json()
+        // Daten werden ausgegeben.
+    ).then(data => {
+        console.log(data);
+        highScore = data.highScore
+    }).catch(err =>
+        console.error('Error:', err)
+    );
+}
+
+// Levelaufstieg/Spiel gewonnen
+const levelUp = () => {
+    // Ein Level wurde geschafft, wenn alle sichtbaren Steine zerstört wurden.
+    levelComplete = true;
+    for (let r = 0; r < brick.rows; r++) {
+        for (let c = 0; c < brick.cols; c++) {
+            levelComplete = levelComplete && !bricks[r][c].status
+        }
+    }
+    // Wenn ein Level geschafft wurde, steigt der Spieler ins nächste Level auf, eine weitere Steinreihe kommt hinzu,
+    // Paddle und Ball werden zurückgesetzt.
+    if (levelComplete) {
+        brick.rows++;
+        createBricks();
+        resetPaddle();
+        resetBall();
+        level++;
+    }
+    // Wenn alle Level geschafft wurden, erscheint das Winner Pop-up.
+    if (level >= 6) {
+        gameOver = true;
+        document.getElementById('winner').classList.remove('hidepopup');
+        document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht.`;
+
+        // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
+        const newGame = document.querySelector("#newgame");
+        newGame.addEventListener('click', function () {
+            document.getElementById('winner').classList.add('hidepopup');
+            document.location.reload();
+        });
+        postHighScore();
+    }
 }
 
 // Spiel veloren
@@ -310,31 +348,7 @@ const gameLost = () => {
             document.getElementById('loser').classList.add('hidepopup');
             document.location.reload();
         });
-        setHighScore();
-    }
-}
-
-// Spiel gewonnen
-const gameWon = () => {
-    // Wenn alle Steine zerstört wurden, erscheint das Winner Pop-up.
-    win = true;
-    for (let r = 0; r < brick.rows; r++) {
-        for (let c = 0; c < brick.cols; c++) {
-            win = win && !bricks[r][c].status
-        }
-    }
-    if (win) {
-        gameOver = true;
-        document.getElementById('winner').classList.remove('hidepopup');
-        document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht.`;
-
-        // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
-        const newGame = document.querySelector("#newgame");
-        newGame.addEventListener('click', function () {
-            document.getElementById('winner').classList.add('hidepopup');
-            document.location.reload();
-        });
-        setHighScore();
+        postHighScore();
     }
 }
 
@@ -345,8 +359,8 @@ const update = () => {
     wallCollision();
     paddleCollision();
     brickCollision();
+    levelUp();
     gameLost();
-    gameWon();
 }
 
 // Alle Zeichnungen
@@ -356,8 +370,9 @@ const draw = () => {
     drawPaddle();
     drawBall();
     drawGameStats(scoreIcon, 24, game.height - 66, score, 80, game.height - 28);
-    drawGameStats(livesIcon, game.width / 2 - 38, game.height - 66, lives, game.width / 2 + 18, game.height - 28);
-    drawGameStats(highScoreIcon, game.width - 132, game.height - 66, highScore, game.width - 76, game.height - 28);
+    drawGameStats(livesIcon, 238, game.height - 66, lives, 294, game.height - 28);
+    drawGameStats(levelIcon, 453, game.height - 66, level, 509, game.height - 28);
+    drawGameStats(highScoreIcon, 667, game.height - 66, highScore, 723, game.height - 28);
 }
 
 // Spielschleife
