@@ -3,7 +3,7 @@
 // VARIABLEN
 
 let score = 0;
-let pointsPerBrick = [25, 20, 15, 10, 5];
+let pointsPerBrick = [30, 25, 20, 15, 10, 5];
 let scoreIcon = new Image();
 scoreIcon.src = 'img/score.png';
 let lives = 3;
@@ -12,7 +12,7 @@ livesIcon.src = 'img/lives.png';
 let level = 1;
 let levelIcon = new Image();
 levelIcon.src = 'img/level.png';
-let highScore = 2000;
+let highScore = 0;
 let highScoreIcon = new Image();
 highScoreIcon.src = 'img/highscore.png';
 let leftArrow = false;
@@ -24,7 +24,7 @@ let paddleWidth = 120;
 let paddleHeight = 30;
 let ballRadius = 16;
 let bricks = [];
-let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa'];
+let brickColors = ['#fe4109', '#fe9901', '#f5e900', '#a3db00', '#7addfa', '#bb82c6'];
 
 // Canvas und Kontext
 const game = document.querySelector('#game');
@@ -319,7 +319,7 @@ const levelUp = () => {
         level++;
     }
     // Wenn alle Level geschafft wurden, erscheint das Winner Pop-up.
-    if (level >= 6) {
+    if (level >= 7) {
         gameOver = true;
         document.getElementById('winner').classList.remove('hidepopup');
         document.getElementById('resultwinner').textContent = `Du hast ${score} Punkte erreicht.`;
