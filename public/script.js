@@ -46,7 +46,7 @@ const ball = {
     radius: ballRadius,
     x: game.width / 2,
     y: paddle.y - ballRadius,
-    vx: 4 * (Math.random() * 2 - 1), // Zufällige Flugrichtung zwischen -3 und 3.
+    vx: 4 * (Math.random() * 2 - 1), // Zufällige Wert zwischen -4 und 4.
     vy: -4,
     speed: 5
 }
