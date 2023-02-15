@@ -1,93 +1,93 @@
 * {
-    padding: 0;
-    margin: 0;
+  padding: 0;
+  margin: 0;
 }
 
 body {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 canvas {
-    display: block;
-    background-color: #111;
-    border-radius: 20px;
-    margin: auto;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  display: block;
+  background-color: #111;
+  border-radius: 20px;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 h2 {
-    font-size: 3.6em;
-    font-family: 'Bebas Neue', cursive;
-    color: #333;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    line-height: 1.6em;
+  font-size: 3.6em;
+  font-family: "Bebas Neue", cursive;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.6em;
 }
 
 #newgame,
 #newchance,
 #resultwinner,
 #resultloser {
-    font-family: 'Roboto', sans-serif;
-    font-size: 1.12em;
-    font-weight: 400;
+  font-family: "Roboto", sans-serif;
+  font-size: 1.12em;
+  font-weight: 400;
 }
 
 #loser,
 #winner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.7);
-    text-align: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  text-align: center;
 }
 
-#loser>div,
-#winner>div {
-    margin: auto;
-    padding: 21px 40px 28px;
-    border-radius: 18px;
-    box-shadow: 0px 0px 20px 5px rgba(0, 0, 0, 0.7);
-    background: #fff;
+#loser > div,
+#winner > div {
+  margin: auto;
+  padding: 21px 40px 28px;
+  border-radius: 18px;
+  box-shadow: 0px 0px 20px 5px rgba(0, 0, 0, 0.7);
+  background: #fff;
 }
 
 #newgame,
 #newchance {
-    display: inherit;
-    margin: 10px 0 12px 0;
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    color: #fff;
-    text-decoration: none;
-    padding: 10px 0;
-    width: 100%;
-    background: #333;
-    border: 2px solid #333;
-    border-radius: 10px;
+  display: inherit;
+  margin: 10px 0 12px 0;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 0;
+  width: 100%;
+  background: #333;
+  border: 2px solid #333;
+  border-radius: 10px;
 }
 
 #newgame:hover,
 #newchance:hover {
-    background: #fff;
-    border: 2px dashed #333;
-    color: #333;
-    cursor: pointer;
+  background: #fff;
+  border: 2px dashed #333;
+  color: #333;
+  cursor: pointer;
 }
 
 #resultwinner,
 #resultloser {
-    color: #555;
+  color: #555;
 }
 
 .hidepopup {
-    display: none !important;
+  display: none !important;
 }
