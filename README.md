@@ -3,7 +3,7 @@
 Like the popular arcade game, Cube Crusher is about destroying walls with a ball. Score, remaining lives, level and high score are displayed below. Each level adds another wall. The speed of the ball increases with each collision.
 
 <div align="center">
-  ![cube_crusher_demo](https://github.com/user-attachments/assets/44804f2f-6a7d-4284-ac84-f3f52580e1d3)
+  <img src="https://github.com/user-attachments/assets/44804f2f-6a7d-4284-ac84-f3f52580e1d3" alt="demo">
 </div>
 
 ## Tech Stack
