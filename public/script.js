@@ -24,7 +24,14 @@ let paddleWidth = 120;
 let paddleHeight = 30;
 let ballRadius = 16;
 let bricks = [];
-let brickColors = ["#fe4109", "#fe9901", "#f5e900", "#a3db00", "#7addfa", "#bb82c6"];
+let brickColors = [
+  "#fe4109",
+  "#fe9901",
+  "#f5e900",
+  "#a3db00",
+  "#7addfa",
+  "#bb82c6",
+];
 
 // Canvas und Kontext
 const game = document.querySelector("#game");
@@ -46,7 +53,7 @@ const ball = {
   radius: ballRadius,
   x: game.width / 2,
   y: paddle.y - ballRadius,
-  vx: 4 * (Math.random() * 2 - 1), // Zufällige Wert zwischen -4 und 4.
+  vx: 4 * (Math.random() * 2 - 1), // Zufälliger Wert zwischen -4 und 4.
   vy: -4,
   speed: 5,
 };
@@ -136,7 +143,14 @@ const drawBricks = () => {
   for (let r = 0; r < brick.rows; r++) {
     for (let c = 0; c < brick.cols; c++) {
       if (bricks[r][c].status) {
-        roundedRect(bricks[r][c].x, bricks[r][c].y, brick.w, brick.h, 10, brickColors[r]);
+        roundedRect(
+          bricks[r][c].x,
+          bricks[r][c].y,
+          brick.w,
+          brick.h,
+          10,
+          brickColors[r]
+        );
       }
     }
   }
@@ -144,14 +158,14 @@ const drawBricks = () => {
 
 // Schläger Steuerung
 const movePaddle = () => {
-  document.addEventListener("keydown", evt => {
+  document.addEventListener("keydown", (evt) => {
     if (evt.keyCode == 37) {
       leftArrow = true;
     } else if (evt.keyCode == 39) {
       rightArrow = true;
     }
   });
-  document.addEventListener("keyup", evt => {
+  document.addEventListener("keyup", (evt) => {
     if (evt.keyCode == 37) {
       leftArrow = false;
     } else if (evt.keyCode == 39) {
@@ -175,7 +189,8 @@ const moveBall = () => {
 // Kollisionserkennung Wand
 const wallCollision = () => {
   // Wenn der Ball mit der linken oder rechten Wand kollidiert, wird der vx-Wert negiert.
-  if (ball.x + ball.radius > game.width || ball.x - ball.radius < 0) ball.vx *= -1;
+  if (ball.x + ball.radius > game.width || ball.x - ball.radius < 0)
+    ball.vx *= -1;
   // Wenn der Ball mit der Decke kollidiert, wird der vy-Wert negiert.
   if (ball.y - ball.radius < 0) ball.vy *= -1;
   // Wenn der Ball mit dem Boden kollidiert, verliert der Spieler ein Leben, Schläger und Ball werden zurückgesetzt.
@@ -196,7 +211,11 @@ const paddleCollision = () => {
   // Wenn der Ball mit dem Schläger kollidiert, ergibt die Geschwindigkeit * dem Sinus vom Abprall-Winkel den neuen vx-Wert
   // und die negierte Geschwindigkeit * dem Cosinus vom Abprall-Winkel den neuen vy-Wert.
   // Die Ball-Geschwindigkeit wird leicht erhöht.
-  if (ball.y + ball.radius > paddle.y && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
+  if (
+    ball.y + ball.radius > paddle.y &&
+    ball.x >= paddle.x &&
+    ball.x <= paddle.x + paddle.w
+  ) {
     ball.vx = ball.speed * Math.sin(reboundAngle);
     ball.vy = -ball.speed * Math.cos(reboundAngle);
     ball.speed += 0.1;
@@ -210,7 +229,12 @@ const brickCollision = () => {
       if (bricks[r][c].status) {
         // Wenn der Ball mit dem Stein kollidiert, wird der vy-Wert negiert, die Ball-Geschwindigkeit erhöht sich,
         // der Stein verschwindet, Punkte werden zugezählt.
-        if (ball.x + ball.radius > bricks[r][c].x && ball.x - ball.radius < bricks[r][c].x + brick.w && ball.y + ball.radius > bricks[r][c].y && ball.y - ball.radius < bricks[r][c].y + brick.h) {
+        if (
+          ball.x + ball.radius > bricks[r][c].x &&
+          ball.x - ball.radius < bricks[r][c].x + brick.w &&
+          ball.y + ball.radius > bricks[r][c].y &&
+          ball.y - ball.radius < bricks[r][c].y + brick.h
+        ) {
           ball.vy *= -1;
           ball.speed += 0.05;
           bricks[r][c].status = false;
@@ -245,14 +269,14 @@ const postHighScore = () => {
     // Erhaltene Daten werden in JSON konvertiert.
   })
     .then(
-      res => res.json()
+      (res) => res.json()
       // Daten werden ausgegeben.
     )
-    .then(data => {
+    .then((data) => {
       console.log(data);
       highScore = data.highScore;
     })
-    .catch(err => console.error("Error:", err));
+    .catch((err) => console.error("Error:", err));
 };
 
 // High Score laden (GET Request an Server)
@@ -260,14 +284,14 @@ const getHighScore = () => {
   fetch("/highscore")
     .then(
       // Erhaltene Daten werden in JSON konvertiert.
-      res => res.json()
+      (res) => res.json()
       // Daten werden ausgegeben.
     )
-    .then(data => {
+    .then((data) => {
       console.log(data);
       highScore = data.highScore;
     })
-    .catch(err => console.error("Error:", err));
+    .catch((err) => console.error("Error:", err));
 };
 
 // Levelaufstieg/Spiel gewonnen
@@ -292,7 +316,9 @@ const levelUp = () => {
   if (level >= 7) {
     gameOver = true;
     document.getElementById("winner").classList.remove("hidepopup");
-    document.getElementById("resultwinner").textContent = `Du hast ${score} Punkte erreicht.`;
+    document.getElementById(
+      "resultwinner"
+    ).textContent = `Du hast ${score} Punkte erreicht.`;
 
     // Bei Klick auf "Nochmal spielen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
     const newGame = document.querySelector("#newgame");
@@ -310,7 +336,9 @@ const gameLost = () => {
   if (!lives) {
     gameOver = true;
     document.getElementById("loser").classList.remove("hidepopup");
-    document.getElementById("resultloser").textContent = `Du hast immerhin ${score} Punkte erreicht.`;
+    document.getElementById(
+      "resultloser"
+    ).textContent = `Du hast immerhin ${score} Punkte erreicht.`;
 
     // Bei Klick auf "Nochmal versuchen" verschwindet das Winner Pop-up und das Spiel wird neu geladen.
     const newChance = document.querySelector("#newchance");
@@ -342,7 +370,14 @@ const draw = () => {
   drawGameStats(scoreIcon, 24, game.height - 66, score, 80, game.height - 28);
   drawGameStats(livesIcon, 233, game.height - 66, lives, 289, game.height - 28);
   drawGameStats(levelIcon, 441, game.height - 66, level, 497, game.height - 28);
-  drawGameStats(highScoreIcon, 650, game.height - 66, highScore, 706, game.height - 28);
+  drawGameStats(
+    highScoreIcon,
+    650,
+    game.height - 66,
+    highScore,
+    706,
+    game.height - 28
+  );
 };
 
 // Spielschleife
